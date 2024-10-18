@@ -15,7 +15,7 @@ defineCommand({
 	},
 	args: {
 		name: {
-			describe: "Name of the workflow",
+			describe: "Name of the Workflow",
 			type: "string",
 			demandOption: true,
 		},
