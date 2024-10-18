@@ -1,5 +1,11 @@
 # wrangler
 
+## 3.81.1
+
+### Patch Changes
+
+- [#7010](https://github.com/cloudflare/workers-sdk/pull/7010) [`1f6ff8b`](https://github.com/cloudflare/workers-sdk/commit/1f6ff8b696671cd1f7918c0549cc7e6660a71e5b) Thanks [@vicb](https://github.com/vicb)! - chore: update unenv dependency version
+
 ## 3.81.0
 
 ### Minor Changes
