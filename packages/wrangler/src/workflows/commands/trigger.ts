@@ -30,7 +30,7 @@ defineCommand({
 	async handler(args, { config, logger }) {
 		const accountId = await requireAuth(config);
 
-		if (args.params.length != 0) {
+		if (args.params.length !== 0) {
 			try {
 				JSON.parse(args.params);
 			} catch (e) {
