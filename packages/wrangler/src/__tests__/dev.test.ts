@@ -6,6 +6,7 @@ import patchConsole from "patch-console";
 import dedent from "ts-dedent";
 import { vi } from "vitest";
 import { ConfigController } from "../api/startDevWorker/ConfigController";
+import { unwrapHook } from "../api/startDevWorker/utils";
 import registerDevHotKeys from "../dev/hotkeys";
 import { getWorkerAccountAndContext } from "../dev/remote";
 import { FatalError } from "../errors";
@@ -200,9 +201,12 @@ describe.sequential("wrangler dev", () => {
 		});
 	});
 
-	describe("authorization", () => {
+	describe("authorization without env var", () => {
 		mockApiToken({ apiToken: null });
 		const isCISpy = vi.spyOn(CI, "isCI").mockReturnValue(true);
+		afterEach(() => {
+			isCISpy.mockClear();
+		});
 
 		it("should kick you to the login flow when running wrangler dev in remote mode without authorization", async () => {
 			fs.writeFileSync("index.js", `export default {};`);
@@ -212,8 +216,38 @@ describe.sequential("wrangler dev", () => {
 				`[Error: You must be logged in to use wrangler dev in remote mode. Try logging in, or run wrangler dev --local.]`
 			);
 		});
+	});
+	describe("authorization with env var", () => {
+		it("should use config.account_id over env var", async () => {
+			writeWranglerToml({
+				name: "test-worker-toml",
+				main: "index.js",
+				compatibility_date: "2024-01-01",
+				account_id: "12345",
+			});
+			fs.writeFileSync("index.js", `export default {};`);
 
-		isCISpy.mockClear();
+			const options = await runWranglerUntilConfig("dev");
+
+			await expect(unwrapHook(options.dev.auth)).resolves.toMatchObject({
+				accountId: "12345",
+			});
+		});
+
+		it("should use env var when config.account_id is not set", async () => {
+			writeWranglerToml({
+				name: "test-worker-toml",
+				main: "index.js",
+				compatibility_date: "2024-01-01",
+			});
+			fs.writeFileSync("index.js", `export default {};`);
+
+			const options = await runWranglerUntilConfig("dev");
+
+			await expect(unwrapHook(options.dev.auth)).resolves.toMatchObject({
+				accountId: "some-account-id",
+			});
+		});
 	});
 
 	describe("compatibility-date", () => {
@@ -1851,6 +1885,16 @@ describe.sequential("wrangler dev", () => {
 				`[Error: The \`nodejs_compat\` compatibility flag cannot be used in conjunction with the legacy \`--node-compat\` flag. If you want to use the Workers \`nodejs_compat\` compatibility flag, please remove the \`--node-compat\` argument from your CLI command or \`node_compat = true\` from your config file.]`
 			);
 		});
+	});
+
+	it("should error helpfully if pages_build_output_dir is set", async () => {
+		writeWranglerToml({ pages_build_output_dir: "dist", name: "test" });
+		await expect(runWrangler("dev")).rejects.toThrowErrorMatchingInlineSnapshot(
+			`
+			[Error: It looks like you've run a Workers-specific command in a Pages project.
+			For Pages, please run \`wrangler pages dev\` instead.]
+		`
+		);
 	});
 });
 
