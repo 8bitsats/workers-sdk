@@ -29,7 +29,7 @@ const command = defineCommand({
 
 	metadata: {
 		description:
-			"Describe a workflow instance - see its logs, retries and errors",
+			"Describe a Workflow instance - see its logs, retries and errors",
 		owner: "Product: Workflows",
 		status: "open-beta",
 	},
