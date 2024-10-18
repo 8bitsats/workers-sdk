@@ -45,7 +45,7 @@ defineCommand({
 			`/accounts/${accountId}/workflows/${args.name}/instances`,
 			{
 				method: "POST",
-				body: args.params.length != 0 ? args.params : undefined,
+				body: args.params.length !== 0 ? args.params : undefined,
 			}
 		);
 
